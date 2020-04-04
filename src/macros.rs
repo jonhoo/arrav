@@ -24,12 +24,12 @@
 macro_rules! avec {
     ($elem:expr; $n:expr) => {{
         #[allow(unused_imports)]
-        use ::std::convert::TryFrom;
+        use ::core::convert::TryFrom;
         $crate::Arrav::<_, $n>::repeat($elem).expect("cannot insert sentinel into Arrav")
     }};
     ($($x:expr),*) => {{
         #[allow(unused_imports)]
-        use ::std::convert::TryFrom;
+        use ::core::convert::TryFrom;
         let v = [
             $({
                 // TODO: match on sentinel value directly when supported
@@ -82,8 +82,8 @@ macro_rules! avec {
 macro_rules! ArravOf {
     ($container:ty as $t:ty) => {
         $crate::Arrav<$t, {
-            assert!(std::mem::size_of::<$container>() >= std::mem::size_of::<$t>());
-            std::mem::size_of::<$container>() / std::mem::size_of::<$t>()
+            assert!(::core::mem::size_of::<$container>() >= ::core::mem::size_of::<$t>());
+            ::core::mem::size_of::<$container>() / ::core::mem::size_of::<$t>()
         }>
     }
 }

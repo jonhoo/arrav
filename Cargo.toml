@@ -16,3 +16,7 @@ categories = ["data-structures"]
 azure-devops = { project = "jonhoo/jonhoo", pipeline = "arrav", build = "15" }
 codecov = { repository = "jonhoo/arrav", branch = "master", service = "github" }
 maintenance = { status = "experimental" }
+
+[features]
+std = []
+default = ["std"]

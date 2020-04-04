@@ -3,7 +3,7 @@ use crate::*;
 macro_rules! impl_sentinel_by_max {
     ($t:tt) => {
         impl Sentinel for $t {
-            const SENTINEL: Self = std::$t::MAX;
+            const SENTINEL: Self = ::core::$t::MAX;
         }
     };
 }

@@ -1,14 +1,14 @@
 use crate::*;
-use std::convert::TryFrom;
-use std::ops::Index;
-use std::{fmt, ops};
+use core::convert::TryFrom;
+use core::ops::Index;
+use core::{fmt, ops};
 
 // === constructors ===
 
 impl<T, const N: usize> Default for Arrav<T, N>
 where
     T: Copy + Sentinel,
-    [T; N]: std::array::LengthAtMost32,
+    [T; N]: core::array::LengthAtMost32,
 {
     fn default() -> Self {
         Self::new()
@@ -18,7 +18,7 @@ where
 impl<T, const N: usize> TryFrom<[T; N]> for Arrav<T, N>
 where
     T: Copy + Sentinel,
-    [T; N]: std::array::LengthAtMost32,
+    [T; N]: core::array::LengthAtMost32,
 {
     type Error = ([T; N], self::errors::IsSentinel<T>);
     fn try_from(arr: [T; N]) -> Result<Self, Self::Error> {
@@ -26,10 +26,10 @@ where
     }
 }
 
-impl<T, const N: usize> std::iter::FromIterator<T> for Arrav<T, N>
+impl<T, const N: usize> core::iter::FromIterator<T> for Arrav<T, N>
 where
     T: Copy + Sentinel,
-    [T; N]: std::array::LengthAtMost32,
+    [T; N]: core::array::LengthAtMost32,
 {
     fn from_iter<I>(iter: I) -> Self
     where
@@ -41,10 +41,10 @@ where
     }
 }
 
-impl<T, const N: usize> std::iter::Extend<T> for Arrav<T, N>
+impl<T, const N: usize> core::iter::Extend<T> for Arrav<T, N>
 where
     T: Copy + Sentinel,
-    [T; N]: std::array::LengthAtMost32,
+    [T; N]: core::array::LengthAtMost32,
 {
     fn extend<I>(&mut self, iter: I)
     where
@@ -69,7 +69,7 @@ where
 impl<T: fmt::Debug, const N: usize> fmt::Debug for Arrav<T, N>
 where
     T: Copy + Sentinel,
-    [T; N]: std::array::LengthAtMost32,
+    [T; N]: core::array::LengthAtMost32,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(self.iter()).finish()
@@ -81,7 +81,7 @@ where
 impl<T, const N: usize> AsRef<[T]> for Arrav<T, N>
 where
     T: Copy + Sentinel,
-    [T; N]: std::array::LengthAtMost32,
+    [T; N]: core::array::LengthAtMost32,
 {
     fn as_ref(&self) -> &[T] {
         let len = self.len();
@@ -89,10 +89,10 @@ where
     }
 }
 
-impl<T, const N: usize> std::ops::Deref for Arrav<T, N>
+impl<T, const N: usize> core::ops::Deref for Arrav<T, N>
 where
     T: Copy + Sentinel,
-    [T; N]: std::array::LengthAtMost32,
+    [T; N]: core::array::LengthAtMost32,
 {
     type Target = [T];
     fn deref(&self) -> &Self::Target {
@@ -107,8 +107,8 @@ where
 impl<T, const N1: usize, const N2: usize> PartialEq<Arrav<T, N2>> for Arrav<T, N1>
 where
     T: PartialEq + Copy + Sentinel,
-    [T; N1]: std::array::LengthAtMost32,
-    [T; N2]: std::array::LengthAtMost32,
+    [T; N1]: core::array::LengthAtMost32,
+    [T; N2]: core::array::LengthAtMost32,
 {
     fn eq(&self, rhs: &Arrav<T, N2>) -> bool {
         let mut rhs = rhs.iter();
@@ -125,17 +125,17 @@ where
 impl<T, const N: usize> Eq for Arrav<T, N>
 where
     T: Eq + Copy + Sentinel,
-    [T; N]: std::array::LengthAtMost32,
+    [T; N]: core::array::LengthAtMost32,
 {
 }
 
 impl<T, const N1: usize, const N2: usize> PartialOrd<Arrav<T, N2>> for Arrav<T, N1>
 where
     T: PartialOrd + Copy + Sentinel,
-    [T; N1]: std::array::LengthAtMost32,
-    [T; N2]: std::array::LengthAtMost32,
+    [T; N1]: core::array::LengthAtMost32,
+    [T; N2]: core::array::LengthAtMost32,
 {
-    fn partial_cmp(&self, other: &Arrav<T, N2>) -> Option<std::cmp::Ordering> {
+    fn partial_cmp(&self, other: &Arrav<T, N2>) -> Option<core::cmp::Ordering> {
         self.iter().partial_cmp(other.iter())
     }
 }
@@ -143,9 +143,9 @@ where
 impl<T, const N: usize> Ord for Arrav<T, N>
 where
     T: Ord + Copy + Sentinel,
-    [T; N]: std::array::LengthAtMost32,
+    [T; N]: core::array::LengthAtMost32,
 {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+    fn cmp(&self, other: &Self) -> core::cmp::Ordering {
         self.iter().cmp(other.iter())
     }
 }
@@ -153,7 +153,7 @@ where
 impl<T, const N: usize> PartialEq<[T]> for Arrav<T, N>
 where
     T: Copy + Sentinel,
-    [T; N]: std::array::LengthAtMost32,
+    [T; N]: core::array::LengthAtMost32,
 {
     fn eq(&self, rhs: &[T]) -> bool {
         if rhs.len() > N {
@@ -175,7 +175,7 @@ where
 impl<T, const N: usize, const AN: usize> PartialEq<[T; AN]> for Arrav<T, N>
 where
     T: Copy + Sentinel,
-    [T; N]: std::array::LengthAtMost32,
+    [T; N]: core::array::LengthAtMost32,
 {
     fn eq(&self, rhs: &[T; AN]) -> bool {
         self == &rhs[..]
@@ -187,7 +187,7 @@ where
 impl<T, const N: usize> Index<usize> for Arrav<T, N>
 where
     T: Copy + Sentinel,
-    [T; N]: std::array::LengthAtMost32,
+    [T; N]: core::array::LengthAtMost32,
 {
     type Output = T;
     fn index(&self, idx: usize) -> &Self::Output {
@@ -199,7 +199,7 @@ where
 impl<T, const N: usize> Index<ops::Range<usize>> for Arrav<T, N>
 where
     T: Copy + Sentinel,
-    [T; N]: std::array::LengthAtMost32,
+    [T; N]: core::array::LengthAtMost32,
 {
     type Output = [T];
     fn index(&self, idx: ops::Range<usize>) -> &Self::Output {

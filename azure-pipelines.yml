@@ -2,6 +2,17 @@ jobs:
  - template: default.yml@templates
    parameters:
      codecov_token: $(CODECOV_TOKEN_SECRET)
+ - job: no_std
+   displayName: "Compile-check on no_std target"
+   pool:
+     vmImage: ubuntu-latest
+   steps:
+     - template: install-rust.yml@templates
+       parameters:
+         targets:
+          - thumbv7m-none-eabi
+     - bash: cargo check --target thumbv7m-none-eabi --no-default-features
+       displayName: cargo check
 
 resources:
   repositories:

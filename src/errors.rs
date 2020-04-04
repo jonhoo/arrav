@@ -1,9 +1,10 @@
-use std::fmt;
+use core::fmt;
 
 /// The provided value was `T`'s [sentinel value](Sentinel).
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct IsSentinel<T>(pub T);
 
+#[cfg(feature = "std")]
 impl<T: fmt::Debug> std::error::Error for IsSentinel<T> {}
 impl<T> fmt::Display for IsSentinel<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -32,6 +33,7 @@ pub struct PushError<T> {
     pub kind: PushErrorKind,
 }
 
+#[cfg(feature = "std")]
 impl<T: fmt::Debug> std::error::Error for PushError<T> {}
 impl<T> fmt::Display for PushError<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

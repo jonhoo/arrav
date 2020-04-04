@@ -91,8 +91,10 @@
     slice_index_methods
 )]
 #![allow(incomplete_features)]
-#![deny(missing_docs, missing_debug_implementations, unreachable_pub)]
+#![deny(missing_docs, unreachable_pub)]
 #![warn(rust_2018_idioms, intra_doc_link_resolution_failure)]
+#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(feature = "std", deny(missing_debug_implementations))]
 
 #[doc(hidden)]
 pub mod aux;
@@ -103,7 +105,7 @@ pub mod iter;
 mod macros;
 mod traits;
 
-use std::ops;
+use core::ops;
 
 /// A `Vec`-like type backed only by an array.
 ///
@@ -177,7 +179,7 @@ use std::ops;
 #[repr(transparent)]
 pub struct Arrav<T: Copy, const N: usize>
 where
-    [T; N]: std::array::LengthAtMost32,
+    [T; N]: core::array::LengthAtMost32,
 {
     ts: [T; N],
 }
@@ -193,7 +195,7 @@ pub trait Sentinel: PartialEq {
 impl<T, const N: usize> Arrav<T, N>
 where
     T: Copy + Sentinel,
-    [T; N]: std::array::LengthAtMost32,
+    [T; N]: core::array::LengthAtMost32,
 {
     /// Constructs a new, empty `Arrav<T, N>`.
     ///
@@ -249,7 +251,7 @@ where
 impl<T, const N: usize> Arrav<T, N>
 where
     T: Copy,
-    [T; N]: std::array::LengthAtMost32,
+    [T; N]: core::array::LengthAtMost32,
 {
     /// Constructs a new `Arrav<T, N>` directly from a backing array.
     ///
@@ -265,7 +267,7 @@ where
 impl<T, const N: usize> Arrav<T, N>
 where
     T: Copy,
-    [T; N]: std::array::LengthAtMost32,
+    [T; N]: core::array::LengthAtMost32,
 {
     /// Returns the number of elements the `Arrav` can hold without
     /// reallocating.
@@ -285,7 +287,7 @@ where
 impl<T, const N: usize> Arrav<T, N>
 where
     T: Copy + Sentinel,
-    [T; N]: std::array::LengthAtMost32,
+    [T; N]: core::array::LengthAtMost32,
 {
     /// Returns the number of elements in the `Arrav`, also referred to
     /// as its 'length'.
@@ -350,7 +352,7 @@ where
 impl<T: Copy, const N: usize> Arrav<T, N>
 where
     T: Copy + Sentinel,
-    [T; N]: std::array::LengthAtMost32,
+    [T; N]: core::array::LengthAtMost32,
 {
     /// Gets a reference to the element at position `index`.
     ///
@@ -419,7 +421,7 @@ where
 impl<T, const N: usize> Arrav<T, N>
 where
     T: Copy + Sentinel,
-    [T; N]: std::array::LengthAtMost32,
+    [T; N]: core::array::LengthAtMost32,
 {
     /// Appends an element to the back of the `Arrav`.
     ///
@@ -491,7 +493,7 @@ where
             let i = i - 1;
             debug_assert!(self.ts[i] != T::SENTINEL);
             debug_assert!(i == self.capacity() - 1 || self.ts[i + 1] == T::SENTINEL);
-            Some(std::mem::replace(&mut self.ts[i], T::SENTINEL))
+            Some(core::mem::replace(&mut self.ts[i], T::SENTINEL))
         }
     }
 
@@ -545,7 +547,7 @@ where
     #[inline]
     pub fn expand<const N2: usize>(self) -> Arrav<T, N2>
     where
-        [T; N2]: std::array::LengthAtMost32,
+        [T; N2]: core::array::LengthAtMost32,
     {
         assert!(
             N2 >= N,
@@ -556,7 +558,7 @@ where
 
         let mut new: Arrav<T, N2> = Arrav::new();
         // safety: N2 > N
-        unsafe { std::intrinsics::copy_nonoverlapping(self.ts.as_ptr(), new.ts.as_mut_ptr(), N) };
+        unsafe { core::intrinsics::copy_nonoverlapping(self.ts.as_ptr(), new.ts.as_mut_ptr(), N) };
         new
     }
 
@@ -739,7 +741,7 @@ where
 impl<T: Copy, const N: usize> Arrav<T, N>
 where
     T: Copy + Sentinel,
-    [T; N]: std::array::LengthAtMost32,
+    [T; N]: core::array::LengthAtMost32,
 {
     /// Gets a reference to the element at position `index`.
     ///
