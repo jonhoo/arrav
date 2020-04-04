@@ -10,7 +10,7 @@ description = "Sentinel-based heapless vector"
 repository = "https://github.com/jonhoo/arrav.git"
 
 keywords = ["vector","array","const"]
-categories = ["data-structures"]
+categories = ["data-structures", "no-std"]
 
 [badges]
 azure-devops = { project = "jonhoo/jonhoo", pipeline = "arrav", build = "21" }
