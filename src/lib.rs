@@ -912,7 +912,6 @@ specialize!(u8, 16, 4, u8x4, u8_16);
 specialize!(u8, 8, 4, u8x4, u8_8);
 specialize!(u16, 16, 4, u16x4, u16_16);
 specialize!(u16, 8, 4, u16x4, u16_8);
-specialize!(u32, 8, 4, u32x4, u32_8);
 
 // copies of the above for signed types, assuming the same benchmark results hold
 specialize!(i8, 32, 8, i8x8, i8_32);
@@ -920,7 +919,6 @@ specialize!(i8, 16, 4, i8x4, i8_16);
 specialize!(i8, 8, 4, i8x4, i8_8);
 specialize!(i16, 16, 4, i16x4, i16_16);
 specialize!(i16, 8, 4, i16x4, i16_8);
-specialize!(i32, 8, 4, i32x4, i32_8);
 
 macro_rules! impl_sentinel_by_max {
     ($t:tt) => {
