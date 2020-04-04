@@ -24,9 +24,13 @@
 //! value of the type (like `std::u8::MAX`). This means that unless you are saturating the type's
 //! range, you won't even notice the sentinel.
 //!
+//! # Semi-Important Tidbits
+//!
 //! **This crate uses the highly experimental const generics feature, and requires nightly.**
 //!
-//! Why the name? Arrav looks like the word "Array", but with "a bit chopped off".
+//! The crate supports `no_std` environments without `alloc`. Just turn off the `std` feature.
+//!
+//! Wondering why the name? Arrav looks like the word "Array", but with "a bit chopped off" 🤷
 //!
 //! # Examples
 //!
