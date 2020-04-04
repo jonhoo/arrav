@@ -1,18 +1,69 @@
 jobs:
- - template: default.yml@templates
+ - job: style
+   displayName: Style linting
+   pool:
+     vmImage: ubuntu-latest
+   continueOnError: true
+   steps:
+     - template: install-rust.yml@templates
+       parameters:
+         rust: nightly
+         components:
+           - rustfmt
+           - clippy
+     - script: cargo fmt --all -- --check
+       displayName: cargo fmt --check
+     - script: cargo clippy --all
+       displayName: cargo clippy -- -D warnings
+ - job: main
+   displayName: Compile and test
+   dependsOn: []
+   strategy:
+     matrix:
+       Linux:
+         vmImage: ubuntu-latest
+         rust: nightly
+       MacOS:
+         vmImage: macOS-10.15
+         rust: nightly
+       Windows:
+         vmImage: windows-2019
+         rust: nightly
+   pool:
+     vmImage: $(vmImage)
+   continueOnError: true
+   steps:
+     - template: install-rust.yml@templates
+       parameters:
+         rust: $(rust)
+     - script: cargo check
+       displayName: cargo check
+     - script: cargo check --no-default-features
+       displayName: cargo check --no-default-features
+     - script: cargo check --all-features
+       displayName: cargo check --all-features
+     - script: cargo test --all-features
+       displayName: cargo test
+     - script: cargo doc --no-deps
+       displayName: cargo doc
+ - template: coverage.yml@templates
    parameters:
-     codecov_token: $(CODECOV_TOKEN_SECRET)
+     token: $(CODECOV_TOKEN_SECRET)
+     nightly: true
  - job: no_std
+   dependsOn: []
    displayName: "Compile-check on no_std target"
    pool:
      vmImage: ubuntu-latest
    steps:
      - template: install-rust.yml@templates
        parameters:
+         rust: nightly
          targets:
           - thumbv7m-none-eabi
      - bash: cargo check --target thumbv7m-none-eabi --no-default-features
        displayName: cargo check
+ # TODO: MSRV (once not nightly-only)
 
 resources:
   repositories:

@@ -13,7 +13,7 @@ keywords = ["vector","array","const"]
 categories = ["data-structures"]
 
 [badges]
-azure-devops = { project = "jonhoo/jonhoo", pipeline = "arrav", build = "15" }
+azure-devops = { project = "jonhoo/jonhoo", pipeline = "arrav", build = "21" }
 codecov = { repository = "jonhoo/arrav", branch = "master", service = "github" }
 maintenance = { status = "experimental" }
 

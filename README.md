@@ -1,6 +1,6 @@
 [![Crates.io](https://img.shields.io/crates/v/arrav.svg)](https://crates.io/crates/arrav)
 [![Documentation](https://docs.rs/arrav/badge.svg)](https://docs.rs/arrav/)
-[![Build Status](https://dev.azure.com/jonhoo/jonhoo/_apis/build/status/arrav?branchName=master)](https://dev.azure.com/jonhoo/jonhoo/_build/latest?definitionId=15&branchName=master)
+[![Build Status](https://dev.azure.com/jonhoo/jonhoo/_apis/build/status/arrav?branchName=master)](https://dev.azure.com/jonhoo/jonhoo/_build/latest?definitionId=21&branchName=master)
 [![Codecov](https://codecov.io/github/jonhoo/arrav/coverage.svg?branch=master)](https://codecov.io/gh/jonhoo/arrav)
 
 A sentinel-based, heapless, `Vec`-like type.
