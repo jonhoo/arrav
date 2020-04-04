@@ -1,0 +1,18 @@
+[package]
+name = "arrav"
+version = "0.1.0"
+authors = ["Jon Gjengset <jon@thesquareplanet.com>"]
+edition = "2018"
+license = "MIT OR Apache-2.0"
+
+readme = "README.md"
+description = "Sentinel-based heapless vector"
+repository = "https://github.com/jonhoo/arrav.git"
+
+keywords = ["vector","array","const"]
+categories = ["data-structures"]
+
+[badges]
+azure-devops = { project = "jonhoo/jonhoo", pipeline = "arrav", build = "15" }
+codecov = { repository = "jonhoo/arrav", branch = "master", service = "github" }
+maintenance = { status = "experimental" }
