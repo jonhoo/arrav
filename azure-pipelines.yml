@@ -50,6 +50,7 @@ jobs:
    parameters:
      token: $(CODECOV_TOKEN_SECRET)
      nightly: true
+     doctests: true
  - job: no_std
    dependsOn: []
    displayName: "Compile-check on no_std target"
