@@ -19,4 +19,15 @@ maintenance = { status = "experimental" }
 
 [features]
 std = []
-default = ["std"]
+simd = ["packed_simd"]
+default = ["std", "simd"]
+
+[dependencies]
+packed_simd = { version = "0.3", optional = true }
+
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "len"
+harness = false

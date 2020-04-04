@@ -94,7 +94,8 @@
     const_fn,
     const_if_match,
     const_panic,
-    slice_index_methods
+    slice_index_methods,
+    min_specialization
 )]
 #![allow(incomplete_features)]
 #![deny(missing_docs, unreachable_pub)]
@@ -307,12 +308,11 @@ where
     /// assert_eq!(av.len(), 3);
     /// ```
     #[inline]
-    // TODO: SIMD would be _awesome_ here
-    pub fn len(&self) -> usize {
-        self.ts
-            .iter()
-            .position(|v| *v == T::SENTINEL)
-            .unwrap_or(self.capacity())
+    pub fn len(&self) -> usize
+    where
+        Self: SpecializedLen,
+    {
+        self.fast_len()
     }
 
     /// Returns `true` if the `Arrav` contains no elements.
@@ -800,6 +800,127 @@ where
         self.ts.get_unchecked_mut(index)
     }
 }
+
+// === specializations ===
+
+// The performance of `Arrav::len` is key to the performance of `Arrav`, so we want to provide
+// optimized versions of it wherever we can. Even limited specialization lets us do that:
+//
+// TODO: SIMD would be _awesome_ here given that this is needed to call push, pop, and the various
+// derefs to slices. I think that to do it we may need to extend `Sentinel` to also include a
+// `const HINT: u8` associated constant, and then use that to quickly skip over parts of the `[T;
+// N]` to find the first sentinel. we _may_ need specialization
+
+#[doc(hidden)]
+pub trait SpecializedLen {
+    fn fast_len(&self) -> usize;
+}
+
+// Provide a fall-back that always applies
+impl<T, const N: usize> SpecializedLen for Arrav<T, N>
+where
+    T: Copy + Sentinel,
+    [T; N]: core::array::LengthAtMost32,
+{
+    #[inline]
+    default fn fast_len(&self) -> usize {
+        match N {
+            0 => 0,
+            1 => {
+                if self.ts[0] == T::SENTINEL {
+                    0
+                } else {
+                    1
+                }
+            }
+            _ => self
+                .ts
+                .iter()
+                .position(|v| *v == T::SENTINEL)
+                .unwrap_or(self.capacity()),
+        }
+    }
+}
+
+macro_rules! specialize {
+    ($t:ty, $width:expr, $stride:expr, $stype:ident, $test:ident) => {
+        // $stype is just $t + "x" + $width
+        #[cfg(feature = "simd")]
+        impl SpecializedLen for Arrav<$t, $width> {
+            #[inline]
+            fn fast_len(&self) -> usize {
+                let needle = packed_simd::$stype::splat(<$t>::SENTINEL);
+                for start in (0..$width).step_by($stride) {
+                    debug_assert!(start + $stride <= self.ts.len());
+                    let haystack = unsafe { self.ts.get_unchecked(start..start + $stride) };
+                    let search = packed_simd::$stype::from_slice_aligned(haystack);
+                    let eq = search.eq(needle);
+                    if eq.any() {
+                        // found the sentinel!
+                        let offset = if let Some(i) = haystack.iter().position(|&t| t == <$t>::SENTINEL) {
+                            i
+                        } else if cfg!(debug_assertions) {
+                            unreachable!()
+                        } else {
+                            // safety: simd told us the sentinel was here
+                            unsafe { core::hint::unreachable_unchecked() }
+                        };
+                        return start + offset;
+                    }
+                }
+                // all the items are there
+                $width
+            }
+        }
+
+        #[cfg(all(test, feature = "simd"))]
+        mod $test {
+            use super::*;
+            #[test]
+            fn test_specialized_len() {
+                let mut v: Arrav<$t, $width> = avec![1; $width];
+                for removed in 0..$width {
+                    assert_eq!(v.len(), $width - removed);
+                    assert_eq!(v.pop(), Some(1));
+                }
+                assert_eq!(v.len(), 0);
+                assert!(v.is_empty());
+                assert_eq!(v.pop(), None);
+            }
+        }
+    }
+}
+
+// NOTE: don't add a SIMD specialization just because it looks cool!
+// here's what you do:
+//
+//  1. add a specialize!() call below for the [T, N] you have in mind.
+//  2. add a benchmark to benches/len.rs -- the format should hopefully be obvious.
+//  3. run `cargo bench len --no-default-features --features std` to benchmark the
+//     non-simd version of calls to `len`.
+//  4. run `cargo bench len` to benchmark the simd version.
+//  5. look for the "len " benchmark for the specialization you added.
+//  6. if the change seems significant, make a commit that contains the output from
+//     step 4 for your new specialization in the commit message. please place the
+//     criterion output in a fenced code block (```), check that you don't
+//     accidentally have any tabs in there, and check that the output is correctly
+//     aligned.
+//  7. repeat if you want to add more specializations.
+
+specialize!(u8, 32, 8, u8x8, u8_32);
+specialize!(u8, 16, 4, u8x4, u8_16);
+specialize!(u8, 8, 4, u8x4, u8_8);
+specialize!(u16, 16, 4, u16x4, u16_16);
+specialize!(u16, 8, 4, u16x4, u16_8);
+specialize!(u32, 8, 4, u32x4, u32_8);
+
+// copies of the above for signed types, assuming the same benchmark results hold
+specialize!(i8, 32, 8, i8x8, i8_32);
+specialize!(i8, 16, 4, i8x4, i8_16);
+specialize!(i8, 8, 4, i8x4, i8_8);
+specialize!(i16, 16, 4, i16x4, i16_16);
+specialize!(i16, 8, 4, i16x4, i16_8);
+specialize!(i32, 8, 4, i32x4, i32_8);
 
 macro_rules! impl_sentinel_by_max {
     ($t:tt) => {
