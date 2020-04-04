@@ -26,6 +26,8 @@
 //!
 //! **This crate uses the highly experimental const generics feature, and requires nightly.**
 //!
+//! Why the name? Arrav looks like the word "Array", but with "a bit chopped off".
+//!
 //! # Examples
 //!
 //! ```
