@@ -42,6 +42,8 @@ jobs:
        displayName: cargo check --no-default-features
      - script: cargo check --all-features
        displayName: cargo check --all-features
+     - script: cargo test --no-default-features --features std
+       displayName: cargo test (no simd)
      - script: cargo test --all-features
        displayName: cargo test
      - script: cargo doc --no-deps
