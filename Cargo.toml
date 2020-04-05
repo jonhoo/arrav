@@ -19,11 +19,11 @@ maintenance = { status = "experimental" }
 
 [features]
 std = []
-simd = ["packed_simd"]
-default = ["std", "simd"]
+specialization = []
+simd = ["specialization"]
+default = ["std", "specialization"]
 
 [dependencies]
-packed_simd = { version = "0.3", optional = true }
 
 [dev-dependencies]
 criterion = "0.3"

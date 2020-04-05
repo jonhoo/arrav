@@ -42,8 +42,6 @@ pub fn len() {
     bench_len!(c, u8, 32);
     bench_len!(c, u8, 24);
     bench_len!(c, u8, 16);
-    bench_len!(c, u8, 8);
-    bench_len!(c, u8, 4);
     bench_len!(c, u16, 16);
     bench_len!(c, u16, 8);
     bench_len!(c, u16, 4);

@@ -805,11 +805,6 @@ where
 
 // The performance of `Arrav::len` is key to the performance of `Arrav`, so we want to provide
 // optimized versions of it wherever we can. Even limited specialization lets us do that:
-//
-// TODO: SIMD would be _awesome_ here given that this is needed to call push, pop, and the various
-// derefs to slices. I think that to do it we may need to extend `Sentinel` to also include a
-// `const HINT: u8` associated constant, and then use that to quickly skip over parts of the `[T;
-// N]` to find the first sentinel. we _may_ need specialization
 
 #[doc(hidden)]
 pub trait SpecializedLen {
@@ -843,40 +838,63 @@ where
 }
 
 macro_rules! specialize {
-    ($t:ty, $width:expr, $stride:expr, $stype:ident, $test:ident) => {
-        // $stype is just $t + "x" + $width
-        #[cfg(feature = "simd")]
+    ($t:ty, $width:expr, $splits:expr, $test:ident) => {
+        #[cfg(feature = "specialization")]
         impl SpecializedLen for Arrav<$t, $width> {
             #[inline]
             fn fast_len(&self) -> usize {
-                let needle = packed_simd::$stype::splat(<$t>::SENTINEL);
-                for start in (0..$width).step_by($stride) {
-                    debug_assert!(start + $stride <= self.ts.len());
-                    let haystack = unsafe { self.ts.get_unchecked(start..start + $stride) };
-                    let search = packed_simd::$stype::from_slice_aligned(haystack);
-                    let eq = search.eq(needle);
-                    if eq.any() {
-                        // found the sentinel!
-                        let offset = if let Some(i) = haystack.iter().position(|&t| t == <$t>::SENTINEL) {
-                            i
-                        } else if cfg!(debug_assertions) {
-                            unreachable!()
+                // binary search for the sentinel
+                // it'd be nice to use slice::binary_search here, but it could find _any_ sentinel
+                // value, which isn't very helpful. maybe we could search for SENTINEL - 1, and
+                // then scan forward, but that gets tricky _fast_.
+                let empty_at = |i| *unsafe { self.ts.get_unchecked(i) } == <$t>::SENTINEL;
+                if empty_at($width / 2) {
+                    // len must be < $width/2
+                    if $splits == 1 {
+                        0 + unsafe { self.ts.get_unchecked(0..($width/2)) }
+                            .iter()
+                            .position(|v| *v == <$t>::SENTINEL).unwrap_or($width / 2)
+                    } else {
+                        if empty_at($width / 4) {
+                            // len must be < $width/4
+                            0 + unsafe { self.ts.get_unchecked(0..($width/4)) }
+                                .iter()
+                                .position(|v| *v == <$t>::SENTINEL).unwrap_or($width / 4)
                         } else {
-                            // safety: simd told us the sentinel was here
-                            unsafe { core::hint::unreachable_unchecked() }
-                        };
-                        return start + offset;
+                            // len must be => $width/4 < $width/2
+                            ($width / 4) + unsafe { self.ts.get_unchecked(($width/4)..($width/2)) }
+                                .iter()
+                                .position(|v| *v == <$t>::SENTINEL).unwrap_or($width / 4)
+                        }
+                    }
+                } else {
+                    // len must be >= $width/2
+                    if $splits == 1 {
+                        ($width / 2) + unsafe { self.ts.get_unchecked(($width/2)..$width) }
+                            .iter()
+                            .position(|v| *v == <$t>::SENTINEL).unwrap_or($width / 2)
+                    } else {
+                        if empty_at(3 * $width / 4) {
+                            // len must be < 3*$width/4
+                            ($width / 2) + unsafe { self.ts.get_unchecked(($width/2)..(3*$width/4)) }
+                                .iter()
+                                .position(|v| *v == <$t>::SENTINEL).unwrap_or($width / 4)
+                        } else {
+                            // len must be => 3*$width/4
+                            (3 * $width / 4) + unsafe { self.ts.get_unchecked((3*$width/4)..$width) }
+                                .iter()
+                                .position(|v| *v == <$t>::SENTINEL).unwrap_or($width / 4)
+                        }
                     }
                 }
-                // all the items are there
-                $width
             }
         }
 
         #[cfg(test)]
         mod $test {
             use super::*;
-            #[test]
+
+            #[cfg_attr(not(feature = "specialization"), test)]
             fn test_len() {
                 let mut v: Arrav<$t, $width> = avec![1; $width];
                 for removed in 0..$width {
@@ -918,18 +936,24 @@ macro_rules! specialize {
 //     aligned.
 //  7. repeat if you want to add more specializations.
 
-specialize!(u8, 32, 8, u8x8, u8_32);
-specialize!(u8, 16, 4, u8x4, u8_16);
-specialize!(u8, 8, 4, u8x4, u8_8);
-specialize!(u16, 16, 4, u16x4, u16_16);
-specialize!(u16, 8, 4, u16x4, u16_8);
+specialize!(u8, 32, 2, u8_32);
+specialize!(u8, 24, 2, u8_24);
+specialize!(u8, 16, 2, u8_16);
+specialize!(u16, 16, 2, u16_16);
+specialize!(u16, 8, 2, u16_8);
+specialize!(u16, 4, 1, u16_4);
+specialize!(u32, 8, 2, u32_8);
+specialize!(u32, 4, 1, u32_4);
 
 // copies of the above for signed types, assuming the same benchmark results hold
-specialize!(i8, 32, 8, i8x8, i8_32);
-specialize!(i8, 16, 4, i8x4, i8_16);
-specialize!(i8, 8, 4, i8x4, i8_8);
-specialize!(i16, 16, 4, i16x4, i16_16);
-specialize!(i16, 8, 4, i16x4, i16_8);
+specialize!(i8, 32, 2, i8_32);
+specialize!(i8, 24, 2, i8_24);
+specialize!(i8, 16, 2, i8_16);
+specialize!(i16, 16, 2, i16_16);
+specialize!(i16, 8, 2, i16_8);
+specialize!(i16, 4, 1, i16_4);
+specialize!(i32, 8, 2, i32_8);
+specialize!(i32, 4, 1, i32_4);
 
 macro_rules! impl_sentinel_by_max {
     ($t:tt) => {
