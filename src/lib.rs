@@ -94,9 +94,9 @@
     const_fn,
     const_if_match,
     const_panic,
-    slice_index_methods,
-    min_specialization
+    slice_index_methods
 )]
+#![cfg_attr(feature = "specialization", feature(min_specialization))]
 #![allow(incomplete_features)]
 #![deny(missing_docs, unreachable_pub)]
 #![warn(rust_2018_idioms, intra_doc_link_resolution_failure)]
@@ -812,13 +812,13 @@ pub trait SpecializedLen {
 }
 
 // Provide a fall-back that always applies
-impl<T, const N: usize> SpecializedLen for Arrav<T, N>
+impl<T, const N: usize> Arrav<T, N>
 where
     T: Copy + Sentinel,
     [T; N]: core::array::LengthAtMost32,
 {
     #[inline]
-    default fn fast_len(&self) -> usize {
+    fn slow_len(&self) -> usize {
         match N {
             0 => 0,
             1 => {
@@ -834,6 +834,24 @@ where
                 .position(|v| *v == T::SENTINEL)
                 .unwrap_or(self.capacity()),
         }
+    }
+}
+
+impl<T, const N: usize> SpecializedLen for Arrav<T, N>
+where
+    T: Copy + Sentinel,
+    [T; N]: core::array::LengthAtMost32,
+{
+    #[cfg(not(feature = "specialization"))]
+    #[inline]
+    fn fast_len(&self) -> usize {
+        self.slow_len()
+    }
+
+    #[cfg(feature = "specialization")]
+    #[inline]
+    default fn fast_len(&self) -> usize {
+        self.slow_len()
     }
 }
 
