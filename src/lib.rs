@@ -873,11 +873,11 @@ macro_rules! specialize {
             }
         }
 
-        #[cfg(all(test, feature = "simd"))]
+        #[cfg(test)]
         mod $test {
             use super::*;
             #[test]
-            fn test_specialized_len() {
+            fn test_len() {
                 let mut v: Arrav<$t, $width> = avec![1; $width];
                 for removed in 0..$width {
                     assert_eq!(v.len(), $width - removed);
