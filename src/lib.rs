@@ -887,18 +887,29 @@ macro_rules! specialize {
                 assert!(v.is_empty());
                 assert_eq!(v.pop(), None);
             }
+
+            #[cfg(feature = "specialization")]
+            #[test]
+            fn test_specialized_len() {
+                test_len()
+            }
         }
     }
 }
 
-// NOTE: don't add a SIMD specialization just because it looks cool!
+// NOTE: don't add a specialization just because it looks cool!
 // here's what you do:
 //
 //  1. add a specialize!() call below for the [T, N] you have in mind.
 //  2. add a benchmark to benches/len.rs -- the format should hopefully be obvious.
-//  3. run `cargo bench len --no-default-features --features std` to benchmark the
-//     non-simd version of calls to `len`.
-//  4. run `cargo bench len` to benchmark the simd version.
+//  3. run this command to benchmark the non-specialized versions of `len`:
+//     ```console
+//     $ cargo bench --no-default-features --features std --bench len -- --save-baseline unoptimized
+//     ```
+//  4. run this command to benchmark the specialized version and compare to the baseline:
+//     ```console
+//     $ cargo bench --bench len -- --baseline unoptimized
+//     ```
 //  5. look for the "len " benchmark for the specialization you added.
 //  6. if the change seems significant, make a commit that contains the output from
 //     step 4 for your new specialization in the commit message. please place the
