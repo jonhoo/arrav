@@ -139,7 +139,8 @@ use core::ops;
 /// However be careful: if you try to access an index which isn't in the `Arrav`,
 /// as your code will panic! You cannot do this:
 ///
-/// ```should_panic
+/// ```no_run,should_panic
+/// # // this is no_run since tarpaulin can't handle should_panic doctests
 /// let v = arrav::avec![0, 2, 4, 6];
 /// println!("{}", v[6]); // it will panic!
 /// ```
@@ -541,7 +542,8 @@ where
     ///
     /// Panics if `N2 < N`.
     ///
-    /// ```should_panic
+    /// ```no_run,should_panic
+    /// # // this is no_run since tarpaulin can't handle should_panic doctests
     /// # use arrav::{Arrav, avec};
     /// let v = avec![1, 2, 3];
     /// assert_eq!(v.capacity(), 3);
