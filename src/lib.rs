@@ -191,7 +191,7 @@ where
 }
 
 /// A type that has a sentinel value that can be used to indicate termination in [`Arrav`].
-pub trait Sentinel: PartialEq {
+pub trait Sentinel: PartialEq + Copy {
     /// The sentinel value for a type used to indicate termination in [`Arrav`].
     const SENTINEL: Self;
 }
