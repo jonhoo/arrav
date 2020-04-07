@@ -261,6 +261,8 @@ where
 {
     /// Constructs a new `Arrav<T, N>` directly from a backing array.
     ///
+    /// # Safety
+    ///
     /// This method does not check that `T::SENTINEL` only appears in a suffix of the array's
     /// elements. If it appears elsewhere, methods will do strange things.
     pub const unsafe fn from_array_unchecked(arr: [T; N]) -> Self {
@@ -830,11 +832,7 @@ where
                     1
                 }
             }
-            _ => self
-                .ts
-                .iter()
-                .position(|v| *v == T::SENTINEL)
-                .unwrap_or(self.capacity()),
+            _ => self.ts.iter().position(|v| *v == T::SENTINEL).unwrap_or(N),
         }
     }
 }
